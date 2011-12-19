@@ -9,4 +9,5 @@ define module PersistentVector
   use common-dylan, exclude: { format-to-string };
   use format-out;
   use print;
+  use threads;
 end module;
