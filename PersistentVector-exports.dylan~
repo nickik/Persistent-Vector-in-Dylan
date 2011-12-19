@@ -1,0 +1,11 @@
+module: dylan-user
+
+define library PersistentVector
+  use common-dylan;
+  use io;
+end library;
+
+define module PersistentVector
+  use common-dylan;
+  use format-out;
+end module;
