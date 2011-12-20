@@ -35,75 +35,56 @@ end method print-object;
 define function main(name, arguments)
   let pvec = EMPTY-PVector;
 
-  for (element  from 1  to 32)
+   //if ( ash(element-count(vec), - 5) > lsh(1, shift(vec)))
+    // (cnt >>> 5) > (1 << shift))
+/*
+  format-out("ash %=\n", ash(16, - 3));
+  format-out("ash %=\n", ash(16, 3));
+  format-out("lsh %=\n", lsh(16, 3));
+  format-out("lsh %=\n", lsh(16, - 3));
+  */
+
+
+  for (element  from 1  to 1028)
     pvec := add(pvec, element);
-    //format-out("%=\n", pvec);
+    format-out("%=\n", pvec);
   end for;
   
-  format-out("%=\n", pvec);
-  add(pvec, 33);
-
+  //format-out("%=\n", pvec.element-count);
+  //format-out("TAILNODE copy test %=", make(<node>, array: pvec.root-tail  ));
+  //with-open-file(stream = "/home/nick/dylan.txt", direction: #"output") write(stream, add(pvec, 33)); end;
+  //format-out("%=\n", pvec);  
+  //format-out("%=", add(pvec, 33));  
   exit-application(0);
 end function main;
 
-/*
-public PersistentVector cons(Object val){
-  int i = cnt;
-  if(cnt - tailoff() < 32)
-  {
-    Object[] newTail = new Object[tail.length + 1];
-    System.arraycopy(tail, 0, newTail, 0, tail.length);
-    newTail[tail.length] = val;
-    return new PersistentVector(meta(), cnt + 1, shift, root, newTail);
-   }
-   Node newroot;
-   Node tailnode = new Node(root.edit,tail);
-   int newshift = shift;
-   //overflow root?
-   if((cnt >>> 5) > (1 << shift))
-   {
-     newroot = new Node(root.edit);
-     newroot.array[0] = root;
-     newroot.array[1] = newPath(root.edit,shift, tailnode);
-     newshift += 5;
-   }
-   else
-     newroot = pushTail(shift, root, tailnode);
-   
-   return new PersistentVector(meta(), cnt + 1, newshift, newroot, new Object[]{val});
-}
-
-*/
-
 define method add ( vec :: <PVector>, val ) => (result-vec :: <PVector>)
   let  tail-size = size(vec.root-tail);
-  //format-out("tail-size: %=\n", tail-size);
-  //format-out("val: %=\n", val);
   
   if ( tail-size < 32 )
     let new-tail = add( vec.root-tail, val );
     make(<PVector>, size: element-count(vec) + 1, shift: shift(vec), tail: new-tail, root-node: root-node(vec));
   else
-    format-out("\n\n\n test test test \n \n \n");
     let tailnode = make(<node>, array: vec.root-tail);
-    format-out("\n\ntailnode: %=\n", tailnode);
-    format-out("ash(element-count(vec), - 5): %=", ash(element-count(vec), - 5));
-    format-out("lsh(1, shift(vec)): %=", lsh(1, shift(vec)));
-    format-out("%=  > %=", ash(element-count(vec), - 5), lsh(1, shift(vec)));
-    if ( ash(element-count(vec), - 5) > lsh(1, shift(vec)))
+    //format-out("\nash(element-count(vec), - 5): %=\n", ash(element-count(vec), - 5));
+    //format-out("\nlsh(1, shift(vec)): %=\n", lsh(1, shift(vec)));
+    //format-out("\n%=  > %=\n", ash(element-count(vec), - 5), lsh(1, shift(vec)));
+    //if ( ash(element-count(vec), - 5) > lsh(1, shift(vec)))
+    // (cnt >>> 5) > (1 << shift))
+    if (  ash( element-count(vec), - 5) > ash( shift(vec), - 2))
       let new-root = make(<node>);
       new-root.array[0] := root-node(vec);
       new-root.array[1] := new-path(vec, shift(vec), tailnode);      
       make(<PVector>, size: element-count(vec) + 1, 
 	              shift: shift(vec) + 5, 
                       root-node: new-root, 
-                      tail: tailnode);
+                      tail: add(make(<vector>), val));
     else
       let new-root :: <node> = push-tail(vec, shift(vec), root-node(vec), tailnode);
       make(<PVector>, size: element-count(vec) + 1,
-                      shift: shift,
+                      shift: shift(vec),
                       root-node: new-root,
-	              tail: tailnode);
+	              tail: add( make(<vector>), val));
     end if;
   end if;
 end method add;
@@ -117,7 +98,7 @@ define method push-tail ( vec :: <PVector>, level, parent :: <node>, tailnode ::
 			 let child = parent.array[subindex];
 			 if (child)
 			   push-tail( vec, level - 5, child, tailnode);
-			 else
+
 			   new-path (vec, level - 5, tailnode);
 			 end if;
 		       end if;
