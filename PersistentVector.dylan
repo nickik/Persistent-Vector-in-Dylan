@@ -29,32 +29,15 @@ define method tailoff ( vector :: <PVector> )
 end method tailoff;
 
 define method print-object ( vec :: <PVector>, stream :: <stream>) => ()
-  format-out("PVector: %=Tail: %=\n\n", vec.root-node, vec.root-tail); 
+  format-out("PVector:\n%=Tail: %=\n\n", vec.root-node, vec.root-tail); 
 end method print-object;
 
 define function main(name, arguments)
   let pvec = EMPTY-PVector;
-
-   //if ( ash(element-count(vec), - 5) > lsh(1, shift(vec)))
-    // (cnt >>> 5) > (1 << shift))
-/*
-  format-out("ash %=\n", ash(16, - 3));
-  format-out("ash %=\n", ash(16, 3));
-  format-out("lsh %=\n", lsh(16, 3));
-  format-out("lsh %=\n", lsh(16, - 3));
-  */
-
-
-  for (element  from 1  to 1028)
+  for (element  from 1  to 450)
     pvec := add(pvec, element);
-    format-out("%=\n", pvec);
+    format-out("%=", pvec);
   end for;
-  
-  //format-out("%=\n", pvec.element-count);
-  //format-out("TAILNODE copy test %=", make(<node>, array: pvec.root-tail  ));
-  //with-open-file(stream = "/home/nick/dylan.txt", direction: #"output") write(stream, add(pvec, 33)); end;
-  //format-out("%=\n", pvec);  
-  //format-out("%=", add(pvec, 33));  
   exit-application(0);
 end function main;
 
@@ -71,7 +54,14 @@ define method add ( vec :: <PVector>, val ) => (result-vec :: <PVector>)
     //format-out("\n%=  > %=\n", ash(element-count(vec), - 5), lsh(1, shift(vec)));
     //if ( ash(element-count(vec), - 5) > lsh(1, shift(vec)))
     // (cnt >>> 5) > (1 << shift))
-    if (  ash( element-count(vec), - 5) > ash( shift(vec), - 2))
+    /*format-out("\n\n");
+    format-out("%=", vec);
+    format-out("shift(vec): %=\n", shift(vec));
+    format-out("element-count(vec): %=\n", element-count(vec));
+    format-out("ash( count, - 5): %=\n", ash( element-count(vec), - 5));
+    format-out("lsh( 1, shfit (vec)): %=\n", lsh( 1, shift(vec)));
+    format-out("ash( ele(vec), - 5)  > ash( shift(vec), - 2)  %=\n", ash( element-count(vec), - 5) > ash( shift(vec), - 2));*/
+    if ( ash( element-count(vec), - 5) > lsh(1, shift(vec)))
       let new-root = make(<node>);
       new-root.array[0] := root-node(vec);
       new-root.array[1] := new-path(vec, shift(vec), tailnode);      
@@ -103,6 +93,7 @@ define method push-tail ( vec :: <PVector>, level, parent :: <node>, tailnode ::
 			 end if;
 		       end if;
   ret.array[subindex] := node-to-insert;
+  ret;
 end method push-tail;
 
 define method new-path (vec :: <PVector>, level :: <integer>, node :: <node> ) => ( return-node :: <node> )
