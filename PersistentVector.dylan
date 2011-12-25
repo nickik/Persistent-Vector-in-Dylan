@@ -34,10 +34,12 @@ end method print-object;
 
 define function main(name, arguments)
   let pvec = EMPTY-PVector;
-  for (element  from 1  to 450)
+  for (element  from 0  to 1000)
     pvec := add(pvec, element);
-    format-out("%=", pvec);
-  end for;
+    //format-out("%=", pvec);
+  end for; 
+  format-out("%=\n", my-element(pvec, 6, notfound:10));
+  //format-out("%=", pvec);
   exit-application(0);
 end function main;
 
@@ -49,18 +51,6 @@ define method add ( vec :: <PVector>, val ) => (result-vec :: <PVector>)
     make(<PVector>, size: element-count(vec) + 1, shift: shift(vec), tail: new-tail, root-node: root-node(vec));
   else
     let tailnode = make(<node>, array: vec.root-tail);
-    //format-out("\nash(element-count(vec), - 5): %=\n", ash(element-count(vec), - 5));
-    //format-out("\nlsh(1, shift(vec)): %=\n", lsh(1, shift(vec)));
-    //format-out("\n%=  > %=\n", ash(element-count(vec), - 5), lsh(1, shift(vec)));
-    //if ( ash(element-count(vec), - 5) > lsh(1, shift(vec)))
-    // (cnt >>> 5) > (1 << shift))
-    /*format-out("\n\n");
-    format-out("%=", vec);
-    format-out("shift(vec): %=\n", shift(vec));
-    format-out("element-count(vec): %=\n", element-count(vec));
-    format-out("ash( count, - 5): %=\n", ash( element-count(vec), - 5));
-    format-out("lsh( 1, shfit (vec)): %=\n", lsh( 1, shift(vec)));
-    format-out("ash( ele(vec), - 5)  > ash( shift(vec), - 2)  %=\n", ash( element-count(vec), - 5) > ash( shift(vec), - 2));*/
     if ( ash( element-count(vec), - 5) > lsh(1, shift(vec)))
       let new-root = make(<node>);
       new-root.array[0] := root-node(vec);
@@ -88,7 +78,7 @@ define method push-tail ( vec :: <PVector>, level, parent :: <node>, tailnode ::
 			 let child = parent.array[subindex];
 			 if (child)
 			   push-tail( vec, level - 5, child, tailnode);
-
+			 else
 			   new-path (vec, level - 5, tailnode);
 			 end if;
 		       end if;
@@ -105,5 +95,42 @@ define method new-path (vec :: <PVector>, level :: <integer>, node :: <node> ) =
   end if;
 end method new-path;
 
+define method my-element(vec :: <PVector>, key, #key notfound) => ( obj :: <object>)
+  if ( key >= 0 &  key < element-count(vec))
+    if ( key >= element-count(vec) - size(root-tail(vec)) )
+      root-tail(vec)[ logand( key, 31 )]
+    else
+      let node-array :: <vector> = array(root-node(vec));
+      for (level from shift(vec) above  0 by - 5)
+	node-array := array(node-array[logand( ash(key, level), 31)]);
+      end for;
+      node-array[logand( key, 31)];
+    end if;
+  else
+    notfound;
+  end if;
+end method my-element;
+
+/*
+if(i >= 0 && i < cnt)
+{
+	if(i >= tailoff())
+	return tail;
+	Node node = root;
+	for(int level = shift; level > 0; level -= 5)
+	   node = (Node) node.array[(i >>> level) & 0x01f];
+	return node.array;
+}
+*/
+
+/*if (i >= 0 && i < length) {
+      if (i >= tailOff) {
+        tail(i & 0x01f).asInstanceOf[T]
+      } else {
+        var arr = trie(i)
+        arr(i & 0x01f).asInstanceOf[T]
+      }
+    } else throw new IndexOutOfBoundsException(i.toString)*/
+end method element;
 // Invoke our main() function.
 main(application-name(), application-arguments());
