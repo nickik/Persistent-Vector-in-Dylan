@@ -36,16 +36,16 @@ define function main(name, arguments)
   let pvec = EMPTY-PVector;
   for (element  from 0  to 1000)
     pvec := add(pvec, element);
-    //format-out("%=", pvec);
   end for; 
-  format-out("%=\n", my-element(pvec, 6, notfound:10));
-  //format-out("%=", pvec);
+  format-out("%=\n", my-element(pvec, 1000, notfound: "maan!!"));
+  format-out("size %=\n", size(pvec));
+  format-out("emplty?: %=\n", empty?(pvec));
+  format-out("key-sequence: %=\n", key-sequence(pvec));
   exit-application(0);
 end function main;
 
 define method add ( vec :: <PVector>, val ) => (result-vec :: <PVector>)
-  let  tail-size = size(vec.root-tail);
-  
+  let  tail-size = size(vec.root-tail);  
   if ( tail-size < 32 )
     let new-tail = add( vec.root-tail, val );
     make(<PVector>, size: element-count(vec) + 1, shift: shift(vec), tail: new-tail, root-node: root-node(vec));
@@ -68,6 +68,10 @@ define method add ( vec :: <PVector>, val ) => (result-vec :: <PVector>)
     end if;
   end if;
 end method add;
+
+define method size (vec :: <PVector>) => (i :: <integer>)
+  element-count(vec);
+end method size;
 
 define method push-tail ( vec :: <PVector>, level, parent :: <node>, tailnode :: <node>) => ( node :: <node> )
   let subindex :: <integer> = logand( ash( vec.element-count - 1, - level), 31);
@@ -111,6 +115,10 @@ define method my-element(vec :: <PVector>, key, #key notfound) => ( obj :: <obje
   end if;
 end method my-element;
 
+
+
+
+
 /*
 if(i >= 0 && i < cnt)
 {
@@ -131,6 +139,6 @@ if(i >= 0 && i < cnt)
         arr(i & 0x01f).asInstanceOf[T]
       }
     } else throw new IndexOutOfBoundsException(i.toString)*/
-end method element;
+
 // Invoke our main() function.
 main(application-name(), application-arguments());
