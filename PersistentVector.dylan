@@ -24,10 +24,6 @@ define class <PVector>(<sequence>)
   //constant slot tailoff :: <integer> = element-count - size(tail);
 end class <PVector>;
 
-define method tailoff ( vector :: <PVector> )
-  element-count(vector) - size(vector.root-tail);
-end method tailoff;
-
 define method print-object ( vec :: <PVector>, stream :: <stream>) => ()
   format-out("PVector:\n%=Tail: %=\n\n", vec.root-node, vec.root-tail); 
 end method print-object;
@@ -37,7 +33,7 @@ define function main(name, arguments)
   for (element  from 0  to 1000)
     pvec := add(pvec, element);
   end for; 
-  format-out("%=\n", my-element(pvec, 1000, notfound: "maan!!"));
+  format-out("%=\n", pvec[1000]);
   format-out("size %=\n", size(pvec));
   format-out("emplty?: %=\n", empty?(pvec));
   format-out("key-sequence: %=\n", key-sequence(pvec));
@@ -99,7 +95,7 @@ define method new-path (vec :: <PVector>, level :: <integer>, node :: <node> ) =
   end if;
 end method new-path;
 
-define method my-element(vec :: <PVector>, key, #key notfound) => ( obj :: <object>)
+define method element(vec :: <PVector>, key, #key default) => ( obj :: <object>)
   if ( key >= 0 &  key < element-count(vec))
     if ( key >= element-count(vec) - size(root-tail(vec)) )
       root-tail(vec)[ logand( key, 31 )]
@@ -111,9 +107,9 @@ define method my-element(vec :: <PVector>, key, #key notfound) => ( obj :: <obje
       node-array[logand( key, 31)];
     end if;
   else
-    notfound;
+    default;
   end if;
-end method my-element;
+end method element;
 
 
 
