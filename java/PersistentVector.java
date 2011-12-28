@@ -35,12 +35,14 @@ static class Node {
 public static void main(String args[])
 {
     PersistentVector pvec = EMPTY;
-	for(int i = 1; i != 10000 + 1; i++)
+	for(int i = 0; i != 100 + 1; i++)
 	{
 		pvec = pvec.cons(i); 
 		//System.out.println( pvec.toString() );
 	}
-	//System.out.println( pvec.toString() );
+	System.out.println( pvec.nth(5) );
+	PersistentVector newvec = pvec.assocN(5, "mmaaan!!!!");
+	System.out.println("after assoc in pos 5 print pos 5: " + newvec.nth(5));
 }
 
 public String toString()
@@ -83,9 +85,6 @@ public Object[] arrayFor(int i){
 			return tail;
 		Node node = root;
 		for(int level = shift; level > 0; level -= 5)
-			System.out.println("level: "+ level);
-			System.out.println("stuff: "+ (i >>> level) & 0x01f);
-			System.out.println(Arrays.toString( node.array ));
 			node = (Node) node.array[(i >>> level) & 0x01f];
 		return node.array;
 		}
@@ -162,4 +161,35 @@ private static Node newPath(int level, Node node){
 	ret.array[0] = newPath(level - 5, node);
 	return ret;
 }
+
+
+public PersistentVector assocN(int i, Object val){
+    if(i >= 0 && i < cnt) {
+        if(i >= tailoff())  {
+            Object[] newTail = new Object[tail.length];
+            System.arraycopy(tail, 0, newTail, 0, tail.length);
+            newTail[i & 0x01f] = val;
+	
+            return new PersistentVector(cnt, shift, root, newTail);
+        }
+        return new PersistentVector(cnt, shift, doAssoc(shift, root, i, val), tail);
+    }
+
+	if(i == cnt)
+        return cons(val);
+    
+	throw new IndexOutOfBoundsException();
+}
+
+private static Node doAssoc(int level, Node node, int i, Object val){
+	Node ret = new Node(node.array.clone());
+    if(level == 0) {
+        ret.array[i & 0x01f] = val;
+    } else {
+        int subidx = (i >>> level) & 0x01f;
+        ret.array[subidx] = doAssoc(level - 5, (Node) node.array[subidx], i, val);
+    }
+    return ret;
+}
+
 }

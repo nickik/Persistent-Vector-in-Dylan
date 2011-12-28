@@ -17,7 +17,6 @@ end method print-object;
 
 define class <PVector>(<sequence>)
   constant slot element-count :: <integer> = 0, init-keyword: size:;
-  // ( depth-level + 1 ) * 5 = shift
   constant slot shift :: <integer> = 5, init-keyword: shift:;
   constant slot root-tail :: <vector> = make(<vector>), init-keyword: tail:;
   constant slot root-node :: <node> = EMPTY-NODE, init-keyword: root-node:;
@@ -25,20 +24,39 @@ define class <PVector>(<sequence>)
 end class <PVector>;
 
 define method print-object ( vec :: <PVector>, stream :: <stream>) => ()
-  format-out("PVector:\n%=Tail: %=\n\n", vec.root-node, vec.root-tail); 
+  format-out("PVector %=\n Tail: %=\n\n", vec.root-node, vec.root-tail); 
 end method print-object;
 
 define function main(name, arguments)
   let pvec = EMPTY-PVector;
-  for (element  from 0  to 1000)
+  for (element  from 0  to 10)
     pvec := add(pvec, element);
+    //format-out("%=\n", pvec);
   end for; 
-  format-out("%=\n", pvec[1000]);
-  format-out("size %=\n", size(pvec));
-  format-out("emplty?: %=\n", empty?(pvec));
-  format-out("key-sequence: %=\n", key-sequence(pvec));
+  format-out("%=\n", pvec[5]);
+  let new-vec :: <PVector> = assoc(pvec, 5, "maaaan!!!!");
+  let myelement = element(new-vec, 5, default: "why default?");
+  format-out("after assoc in pos 5 print pos 5: %=\n", myelement);
+  //format-out("  %=\n", map(\-, pvec));
+  format-out("reduce + : %=\n", reduce(\+,0,pvec));
+  format-out("type for copy object-class pvec %=\n", type-for-copy(new-vec));
+  format-out(" empty? %=\n", empty?(pvec));
+  format-out("empty? %=\n", empty?(EMPTY-PVector));
+  format-out("%=\n", map(\+,pvec, pvec));
+  format-out("%=\n", object-class ( map(\+, pvec, pvec)));
+  format-out("%=\n", last(pvec));
+  format-out("list = vec %=\n", list(1,2,3,4) = #[1,2,3,4]);
+  format-out("list == vec %=\n", list(1,2,3,4) == #[1, 2, 3, 4]);
   exit-application(0);
 end function main;
+
+define method empty? ( vec :: <PVector> ) => ( bool :: <boolean>)
+  element-count(vec) == 0;
+end method empty?;
+
+define method type-for-copy ( vec :: <PVector> ) => ( type :: <type> )
+  <simple-object-vector>;
+end method type-for-copy;
 
 define method add ( vec :: <PVector>, val ) => (result-vec :: <PVector>)
   let  tail-size = size(vec.root-tail);  
@@ -92,13 +110,14 @@ define method new-path (vec :: <PVector>, level :: <integer>, node :: <node> ) =
   else
     let ret :: <node> = make(<node>);
     ret.array[0] := new-path(vec, level - 5, node);
+    ret;
   end if;
 end method new-path;
 
-define method element(vec :: <PVector>, key, #key default) => ( obj :: <object>)
-  if ( key >= 0 &  key < element-count(vec))
+define method element(vec :: <PVector>, key, #key default) => (obj :: <object>)
+  if (key >= 0 & key < element-count(vec))
     if ( key >= element-count(vec) - size(root-tail(vec)) )
-      root-tail(vec)[ logand( key, 31 )]
+      root-tail(vec)[logand(key, 31)]
     else
       let node-array :: <vector> = array(root-node(vec));
       for (level from shift(vec) above  0 by - 5)
@@ -111,30 +130,119 @@ define method element(vec :: <PVector>, key, #key default) => ( obj :: <object>)
   end if;
 end method element;
 
+define method assoc (vec :: <PVector>, key :: <integer>, val) => (vec :: <PVector> )
+  if (key >= 0 & key < element-count(vec))
+      if (key >=  element-count(vec) - size(root-tail(vec)))
+        let new-tail = copy-sequence(root-tail(vec));
+	format-out("1:element-count: %=\n", element-count(vec));
+	make(<PVector>, size: element-count(vec),
+	                shift: shift(vec),
+	                root-node: root-node(vec),
+	                tail: new-tail);
+      else
+	make(<PVector>, size: element-count(vec),
+	                shift: shift(vec),
+	                root-node: doAssoc(shift(vec), root-node(vec), key, val),
+	                tail: root-tail(vec));
+      end if;
+  elseif (element-count(vec) == key)
+      add(vec, val);
+  else
+      format-out("Index out of bound! \n");
+  end if;
+end method assoc;    
 
-
-
-
+define method doAssoc( level :: <integer>, node :: <node>, key :: <integer>, val)
+  let ret = make(<node>, array: copy-sequence( array(node)));
+  if (level == 0)
+    array(ret)[logand( key, 31)] := val;
+  else
+    let subindex :: <integer> = logand( ash( key, - level)  ,31);
+    array(ret)[subindex] := doAssoc(level - 5, array(node)[subindex], key, val);
+  end if;
+  ret;
+end method doAssoc;
 /*
-if(i >= 0 && i < cnt)
-{
-	if(i >= tailoff())
-	return tail;
-	Node node = root;
-	for(int level = shift; level > 0; level -= 5)
-	   node = (Node) node.array[(i >>> level) & 0x01f];
-	return node.array;
-}
+define inline method forward-iteration-protocol (sequence :: <sequence>)
+    => (initial-state :: <integer>, 
+        limit :: <integer>,
+        next-state :: <function>, 
+        finished-state? :: <function>,
+        current-key :: <function>,
+        current-element :: <function>, 
+        current-element-setter :: <function>,
+        copy-state :: <function>);
+  values(0,
+	 sequence.size,
+	 sequence-next-state,
+	 sequence-finished-state?,
+	 sequence-current-key,
+	 element,
+	 sequence-current-element-setter,
+	 identity-copy-state)
+end method forward-iteration-protocol;
 */
+/*
+define method forward-iteration-protocol 
+    (sorted-sequence :: <sorted-sequence>)
+ => (initial-state :: <integer>, limit :: <integer>,
+     next-state :: <function>, finished-state? :: <function>,
+     current-key :: <function>, current-element :: <function>,
+     current-element-setter :: <function>, copy-state :: <function>)
+  values(// Initial state
+         0, 
+         // Limit
+         sorted-sequence.size, 
+          // Next state
+         method (collection :: <sorted-sequence>, state :: <integer>)
+           state + 1
+	 end,
+         // Finished state?
+         method (collection :: <sorted-sequence>, state :: <integer>,
+                 limit :: <integer>)
+           state = limit;
+         end, 
+         // Current key
+         method (collection :: <sorted-sequence>, state :: <integer>)
+           state
+         end, 
+         // Current element
+         element, 
+         // Current element setter
+         method (value :: <object>, collection :: <sorted-sequence>, 
+                 state :: <integer>)
+           error("Setting an element of a sorted sequence is not allowed.");
+         end, 
+         // Copy state
+         identity);
+end method forward-iteration-protocol; */
 
-/*if (i >= 0 && i < length) {
-      if (i >= tailOff) {
-        tail(i & 0x01f).asInstanceOf[T]
-      } else {
-        var arr = trie(i)
-        arr(i & 0x01f).asInstanceOf[T]
-      }
-    } else throw new IndexOutOfBoundsException(i.toString)*/
+
+
+define method forward-iteration-protocol  ( vec :: <PVector> )
+ => (initial-state :: <integer>, limit :: <integer>,
+        next-state :: <function>, finished-state? :: <function>,
+        current-key :: <function>,
+        current-element :: <function>, current-element-setter :: <function>,
+        copy-state :: <function>);
+values(0, // init
+       vec.element-count, // limit
+       method (collection :: <PVector> , state :: <integer>) 
+	 state + 1
+       end, // next state
+       method (collection :: <PVector>, state :: <integer>, limit :: <integer>)
+           state = limit;
+       end, // finished state
+       method (collection :: <PVector>, state :: <integer>)
+	 state
+       end, // current state
+       element, // current val
+       method (vals, seq, states) // current-element-setter
+	 error("Immutable collection %=", seq)
+       end,
+       identity // copy state
+       );
+end method forward-iteration-protocol;
 
 // Invoke our main() function.
 main(application-name(), application-arguments());
