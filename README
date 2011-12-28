@@ -1,0 +1,27 @@
+Persistent Vector implmentation in Dylan
+
+A implementation of a Persistent Vector. A Persistent Vector is an immutable Datastructure that has fast random access and fast insertion at the end.
+
+Random Accsess: O(log32(n)) 
+Insertion: O(log32(n))
+
+For all practical perposes O(log32(n)) is O(1).
+
+
+My objectives:
+- Learn some Dylan (spezially the collections)
+- Give Dylan a better Collections library (spezially for the Multithreaded world)
+
+
+My implmentation is strongly based on the PersistentVector that Clojure uses.
+
+
+Resources
+
+Code: 
+https://github.com/clojure/clojure/blob/master/src/jvm/clojure/lang/PersistentVector.java
+https://github.com/djspiewak/extreme-cleverness/blob/master/src/main/scala/com/codecommit/collection/Vector.scala
+
+How it works:
+http://blog.higher-order.net/2009/02/01/understanding-clojures-persistentvector-implementation/
+
