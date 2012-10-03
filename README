@@ -5,7 +5,7 @@ A implementation of a Persistent Vector. A Persistent Vector is an immutable Dat
 Random Accsess: O(log32(n)) 
 Insertion: O(log32(n))
 
-For all practical perposes O(log32(n)) is O(1).
+For most practical perposes O(log32(n)) is O(1).
 
 
 My objectives:
